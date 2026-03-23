@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "2.2.0";
+const VERSION = "2.3.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -34,6 +34,50 @@ function sortedFloors(hass) {
     });
   });
   return list;
+}
+
+function normalize(v) {
+  return String(v ?? "").trim().toLowerCase();
+}
+
+function resolveFloorsForBuilding(hass, config) {
+  const allFloors = sortedFloors(hass);
+  const byId = new Map(allFloors.map((f) => [f.floor_id, f]));
+
+  const explicitFloorIds = Array.isArray(config.building_floor_ids)
+    ? config.building_floor_ids.map((x) => String(x).trim()).filter(Boolean)
+    : [];
+
+  if (explicitFloorIds.length) {
+    return explicitFloorIds.map((id) => byId.get(id)).filter(Boolean);
+  }
+
+  const building = normalize(config.building);
+  if (!building) return allFloors;
+
+  const buildingMap =
+    config.buildings && typeof config.buildings === "object" && !Array.isArray(config.buildings)
+      ? config.buildings
+      : null;
+
+  if (buildingMap) {
+    const mapped = buildingMap[config.building] ?? buildingMap[building];
+    if (Array.isArray(mapped) && mapped.length) {
+      return mapped.map((id) => byId.get(String(id))).filter(Boolean);
+    }
+  }
+
+  return allFloors.filter((floor) => {
+    const values = [
+      floor.floor_id,
+      floor.name,
+      floor.building,
+      floor.building_id,
+      floor.building_name,
+      ...(Array.isArray(floor.aliases) ? floor.aliases : []),
+    ].map(normalize);
+    return values.includes(building);
+  });
 }
 
 function areasOnFloor(hass, floorId) {
@@ -92,7 +136,17 @@ function buildModel(hass, config) {
   const noAreaLabel = config.no_area_label || "Ohne Bereich";
   const maxName = Number(config.truncate_entity) || 0;
 
-  const all = collectEntities(hass, deviceClasses);
+  const floors = resolveFloorsForBuilding(hass, config);
+  const allowedFloorIds = new Set(floors.map((f) => f.floor_id));
+  const hasFloorFilter =
+    Array.isArray(config.building_floor_ids) && config.building_floor_ids.length > 0
+      ? true
+      : Boolean(normalize(config.building));
+
+  const allRaw = collectEntities(hass, deviceClasses);
+  const all = hasFloorFilter
+    ? allRaw.filter((e) => e.floor_id && allowedFloorIds.has(e.floor_id))
+    : allRaw;
   const sumTotal = all.length;
   const sumActive = all.filter((e) => isActiveState(e.state, activeStates)).length;
   const openAny = sumActive > 0;
@@ -100,7 +154,7 @@ function buildModel(hass, config) {
   const sections = [];
 
   if (groupBy === "floor") {
-    for (const floor of sortedFloors(hass)) {
+    for (const floor of floors) {
       const list = all.filter((e) => e.floor_id === floor.floor_id);
       if (!list.length) continue;
       const act = list.filter((e) => isActiveState(e.state, activeStates)).length;
@@ -113,7 +167,7 @@ function buildModel(hass, config) {
       });
     }
     const noFloor = all.filter((e) => !e.floor_id);
-    if (noFloor.length) {
+    if (noFloor.length && !hasFloorFilter) {
       const act = noFloor.filter((e) => isActiveState(e.state, activeStates)).length;
       sections.push({
         kind: "floor",
@@ -148,7 +202,7 @@ function buildModel(hass, config) {
     return { sections, sumActive, sumTotal, openAny, showDevices, activeStates };
   }
 
-  for (const floor of sortedFloors(hass)) {
+  for (const floor of floors) {
     const floorEntities = all.filter((e) => e.floor_id === floor.floor_id);
     if (!floorEntities.length) continue;
     const areas = areasOnFloor(hass, floor.floor_id);
@@ -176,7 +230,7 @@ function buildModel(hass, config) {
   }
 
   const flatOrphan = all.filter((e) => !e.floor_id);
-  if (flatOrphan.length) {
+  if (flatOrphan.length && !hasFloorFilter) {
     const byKey = new Map();
     for (const e of flatOrphan) {
       const key = e.area_id || "__none__";
@@ -221,6 +275,8 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
+      building: "",
+      building_floor_ids: [],
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
@@ -235,6 +291,8 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
+      building: "",
+      building_floor_ids: [],
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
@@ -332,6 +390,8 @@ class HaDeviceSummary extends LitElement {
             },
           },
         },
+        { name: "building", selector: { text: {} } },
+        { name: "building_floor_ids", selector: { object: {} } },
         { name: "show_devices", selector: { boolean: {} } },
         { name: "count_label", selector: { text: {} } },
         { name: "active_states", selector: { object: {} } },
@@ -351,6 +411,8 @@ class HaDeviceSummary extends LitElement {
         const labels = {
           title: "Titel",
           group_by: "Gruppierung",
+          building: "Gebäude (Text/ID/Alias)",
+          building_floor_ids: "Floor-IDs für Gebäude (YAML-Liste, z. B. [eg, og])",
           show_devices: "Geräte-Badges anzeigen",
           count_label: "Zähl-Label",
           active_states: "Aktive Zustände (YAML-Liste, z. B. [\"on\"])",
@@ -374,6 +436,8 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
+      building: "",
+      building_floor_ids: [],
       show_devices: true,
     };
   }
