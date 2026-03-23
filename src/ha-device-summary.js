@@ -288,39 +288,6 @@ class HaDeviceSummary extends LitElement {
     return Math.min(24, Math.max(2, rows));
   }
 
-  _estimateContentColumns(model) {
-    const sections = model?.sections || [];
-    if (!sections.length) return 6;
-
-    let visualGroups = 0;
-    let maxDevicesInOneGroup = 0;
-
-    for (const s of sections) {
-      if (s.children?.length) {
-        visualGroups += Math.max(1, s.children.length);
-        for (const c of s.children) {
-          maxDevicesInOneGroup = Math.max(maxDevicesInOneGroup, c.entities?.length || 0);
-        }
-      } else {
-        visualGroups += 1;
-        maxDevicesInOneGroup = Math.max(maxDevicesInOneGroup, s.entities?.length || 0);
-      }
-    }
-
-    // HA recommends multiples of 3 (3,6,9,12)
-    let columns = 3;
-    if (visualGroups >= 2) columns = 6;
-    if (visualGroups >= 5) columns = 9;
-    if (visualGroups >= 8) columns = 12;
-
-    // More horizontal space when one group carries many badges.
-    if (maxDevicesInOneGroup >= 8) columns = Math.max(columns, 6);
-    if (maxDevicesInOneGroup >= 14) columns = Math.max(columns, 9);
-    if (maxDevicesInOneGroup >= 24) columns = 12;
-
-    return columns;
-  }
-
   getGridOptions() {
     const rows = Math.max(2, this.getCardSize());
     return {

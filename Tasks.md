@@ -60,3 +60,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 - [x] Gebäudefilter ergänzt: uilding (Text-Match) und uilding_floor_ids (explizite Floor-ID-Liste, empfohlen). Filter wirkt auf Floors/Areas/Entities konsistent.
 
 - [x] Stockwerk-Filter auf native HA-Floors umgestellt: loor_ids (Floor-ID-Liste) ersetzt Building-Heuristik.
+
+- [x] Breite-Fix: getGridOptions().columns auf ull gesetzt (Sections-View standardmäßig vollbreit).
