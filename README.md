@@ -11,7 +11,13 @@ Lovelace-Karte für Home Assistant: **kompakte Geräteübersicht nach Stockwerk 
 5. Browser-Cache leeren oder **Strg+F5**; ggf. Home Assistant neu starten.
 
 Die Ressource zeigt typischerweise auf  
-`/hacsfiles/ha-device-summary/dist/ha-device-summary.js` (Typ **JavaScript-Modul**).
+`/hacsfiles/ha-device-summary/ha-device-summary.js` (Typ **JavaScript-Modul**).
+
+Falls die Installation in HACS fehlschlägt:
+
+- Repository-Typ muss **Dashboard** sein (nicht Integration/Template).
+- URL muss genau auf das GitHub-Repo zeigen: `https://github.com/MarvinSMX/ha-device-summary`.
+- Nach Änderungen im Repo in HACS einmal **Neu laden** (oder HA neu starten), damit Metadaten neu eingelesen werden.
 
 ## Konfiguration
 
