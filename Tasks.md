@@ -56,3 +56,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 - [x] Layout-Fix: Card strikt auf HA-Zellbreite begrenzt (max-width: 100%, overflow: hidden, min-width: 0 in allen Ebenen), damit Inhalt nicht aus dem Dashboard-Layout herausragt.
 
 - [x] Height-Fix: konservativere getCardSize()-Schätzung (Badges /3 statt /5) + interne Vertical-Scrollfläche bei fixen Sections-Rows (.sections { overflow: auto; }), damit nichts abgeschnitten wird.
+
+- [x] Gebäudefilter ergänzt: uilding (Text-Match) und uilding_floor_ids (explizite Floor-ID-Liste, empfohlen). Filter wirkt auf Floors/Areas/Entities konsistent.
