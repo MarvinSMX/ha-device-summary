@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.4.1";
+const VERSION = "1.5.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -298,6 +298,18 @@ class HaDeviceSummary extends LitElement {
       }
     }
     return Math.min(24, Math.max(2, rows));
+  }
+
+  getGridOptions() {
+    const raw = Math.max(1, Number(this._config?.card_columns) || 1);
+    const columns = Math.min(12, raw * 3);
+    const rows = Math.max(2, this.getCardSize());
+    return {
+      columns,
+      min_columns: 3,
+      rows,
+      min_rows: 2,
+    };
   }
 
   static getStubConfig() {
