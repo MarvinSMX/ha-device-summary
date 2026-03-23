@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.1.0";
+const VERSION = "1.1.1";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -321,7 +321,9 @@ class HaDeviceSummary extends LitElement {
         type="button"
         class="badge ${active ? "badge--active" : ""}"
         @click=${() => this._moreInfo(e.entity_id)}
+        title="${e.friendly} (${e.state})"
       >
+        <span class="badge-dot"></span>
         ${name}
       </button>
     `;
@@ -482,13 +484,14 @@ class HaDeviceSummary extends LitElement {
     .section-floor {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding-top: 4px;
-      border-top: 1px solid var(--divider-color);
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--card-background-color) 92%, var(--primary-text-color));
+      border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
     }
     .section-floor:first-of-type {
-      border-top: none;
-      padding-top: 0;
+      margin-top: 0;
     }
     .floor-head {
       display: flex;
@@ -512,9 +515,9 @@ class HaDeviceSummary extends LitElement {
       margin-left: 0;
     }
     .section-floor .block {
-      margin-left: 8px;
+      margin-left: 2px;
       padding-left: 8px;
-      border-left: 2px solid color-mix(in srgb, var(--primary-color) 25%, transparent);
+      border-left: 2px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
     }
     .block-head {
       display: flex;
@@ -537,28 +540,42 @@ class HaDeviceSummary extends LitElement {
       gap: 6px;
     }
     .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-family: inherit;
       font-size: 12px;
-      line-height: 1.2;
-      padding: 5px 10px;
+      line-height: 1.1;
+      padding: 7px 10px;
       margin: 0;
       border-radius: 999px;
-      border: 1px solid var(--divider-color);
-      background: color-mix(in srgb, var(--disabled-color) 8%, var(--card-background-color));
+      border: 1px solid color-mix(in srgb, var(--divider-color) 75%, transparent);
+      background: color-mix(in srgb, var(--card-background-color) 82%, var(--disabled-color));
       color: var(--primary-text-color);
       cursor: pointer;
       max-width: 100%;
       text-align: center;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
     }
     .badge:hover {
-      background: color-mix(in srgb, var(--primary-color) 12%, var(--card-background-color));
+      background: color-mix(in srgb, var(--primary-color) 14%, var(--card-background-color));
       border-color: color-mix(in srgb, var(--primary-color) 35%, var(--divider-color));
+      transform: translateY(-1px);
     }
     .badge--active {
-      background: color-mix(in srgb, var(--error-color) 16%, var(--card-background-color));
+      background: color-mix(in srgb, var(--error-color) 18%, var(--card-background-color));
       border-color: color-mix(in srgb, var(--error-color) 45%, var(--divider-color));
       font-weight: 500;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--secondary-text-color) 70%, transparent);
+      flex-shrink: 0;
+    }
+    .badge--active .badge-dot {
+      background: var(--error-color);
     }
     .badge:focus-visible {
       outline: 2px solid var(--primary-color);

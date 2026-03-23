@@ -69,6 +69,15 @@ active_states: ["off"]
 count_label: geschlossen
 ```
 
+Für die neue Badge-Darstellung (deutlich sichtbar) nutze mindestens:
+
+```yaml
+type: custom:ha-device-summary
+group_by: both
+show_devices: true
+active_states: ["on"]
+```
+
 ## Voraussetzungen
 
 - Home Assistant **2024.7+** (empfohlen; nutzt Floor-/Area-Registry im Frontend).
