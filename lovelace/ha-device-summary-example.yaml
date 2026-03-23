@@ -3,19 +3,13 @@
 # Standard: Stockwerk → Räume, Badges, „offen“ = on
 type: custom:ha-device-summary
 
-# --- Gebäude-Filter über Floor-Liste (empfohlen, eindeutig) ---
+# --- Stockwerk-Filter über native HA Floor-IDs (empfohlen) ---
 # type: custom:ha-device-summary
-# title: Gebäude A
-# building_floor_ids:
+# title: Gebäude A (ausgewählte Stockwerke)
+# floor_ids:
 #   - erdgeschoss
 #   - obergeschoss
 # group_by: floor
-# show_devices: true
-
-# --- Gebäude-Filter über Text (wenn Floor building/name/alias gepflegt) ---
-# type: custom:ha-device-summary
-# building: gebaeude_a
-# group_by: both
 # show_devices: true
 
 # --- Nur Raum (flache Liste nach Bereich) ---

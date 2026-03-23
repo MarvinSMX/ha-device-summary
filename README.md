@@ -39,6 +39,7 @@ type: custom:ha-device-summary
 | **active_states** | Liste | Zustände, die als „mitgezählt“ gelten (Standard: `on`, z. B. offenes Fenster) |
 | **count_label** | Text | Beschriftung in der Zählung (Standard: `offen`) → z. B. `2/5 offen` |
 | **device_classes** | Liste | `binary_sensor.device_class` (Standard: `window`) |
+| **floor_ids** | Liste | Filter auf **native HA-Stockwerke** per Floor-ID (YAML-Liste, z. B. `[erdgeschoss, obergeschoss]`) |
 | **truncate_entity** | Zahl | Text kürzen ab N Zeichen; **`0` oder weglassen = kein Abschneiden** (Standard). Alias: **truncate_areas** (nur wenn `truncate_entity` fehlt) |
 | **unassigned_label** | Text | Block für Bereiche/Geräte **ohne** Stockwerk |
 | **no_area_label** | Text | Gruppe für Entitäten **ohne** Bereich |
@@ -54,6 +55,12 @@ show_devices: true
 # Nur nach Raum (alle Räume, alphabetisch)
 type: custom:ha-device-summary
 group_by: area
+show_devices: true
+
+# Nur bestimmte Stockwerke (native Floor-IDs)
+type: custom:ha-device-summary
+group_by: floor
+floor_ids: [erdgeschoss, obergeschoss]
 show_devices: true
 
 # Kompakt ohne Badges

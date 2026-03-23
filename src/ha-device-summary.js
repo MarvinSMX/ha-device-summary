@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "2.3.0";
+const VERSION = "2.5.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -36,48 +36,14 @@ function sortedFloors(hass) {
   return list;
 }
 
-function normalize(v) {
-  return String(v ?? "").trim().toLowerCase();
-}
-
-function resolveFloorsForBuilding(hass, config) {
+function resolveFloorsForFilter(hass, config) {
   const allFloors = sortedFloors(hass);
   const byId = new Map(allFloors.map((f) => [f.floor_id, f]));
-
-  const explicitFloorIds = Array.isArray(config.building_floor_ids)
-    ? config.building_floor_ids.map((x) => String(x).trim()).filter(Boolean)
+  const floorIds = Array.isArray(config.floor_ids)
+    ? config.floor_ids.map((x) => String(x).trim()).filter(Boolean)
     : [];
-
-  if (explicitFloorIds.length) {
-    return explicitFloorIds.map((id) => byId.get(id)).filter(Boolean);
-  }
-
-  const building = normalize(config.building);
-  if (!building) return allFloors;
-
-  const buildingMap =
-    config.buildings && typeof config.buildings === "object" && !Array.isArray(config.buildings)
-      ? config.buildings
-      : null;
-
-  if (buildingMap) {
-    const mapped = buildingMap[config.building] ?? buildingMap[building];
-    if (Array.isArray(mapped) && mapped.length) {
-      return mapped.map((id) => byId.get(String(id))).filter(Boolean);
-    }
-  }
-
-  return allFloors.filter((floor) => {
-    const values = [
-      floor.floor_id,
-      floor.name,
-      floor.building,
-      floor.building_id,
-      floor.building_name,
-      ...(Array.isArray(floor.aliases) ? floor.aliases : []),
-    ].map(normalize);
-    return values.includes(building);
-  });
+  if (!floorIds.length) return allFloors;
+  return floorIds.map((id) => byId.get(id)).filter(Boolean);
 }
 
 function areasOnFloor(hass, floorId) {
@@ -136,12 +102,9 @@ function buildModel(hass, config) {
   const noAreaLabel = config.no_area_label || "Ohne Bereich";
   const maxName = Number(config.truncate_entity) || 0;
 
-  const floors = resolveFloorsForBuilding(hass, config);
+  const floors = resolveFloorsForFilter(hass, config);
   const allowedFloorIds = new Set(floors.map((f) => f.floor_id));
-  const hasFloorFilter =
-    Array.isArray(config.building_floor_ids) && config.building_floor_ids.length > 0
-      ? true
-      : Boolean(normalize(config.building));
+  const hasFloorFilter = Array.isArray(config.floor_ids) && config.floor_ids.length > 0;
 
   const allRaw = collectEntities(hass, deviceClasses);
   const all = hasFloorFilter
@@ -275,8 +238,7 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
-      building: "",
-      building_floor_ids: [],
+      floor_ids: [],
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
@@ -291,8 +253,7 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
-      building: "",
-      building_floor_ids: [],
+      floor_ids: [],
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
@@ -361,13 +322,9 @@ class HaDeviceSummary extends LitElement {
   }
 
   getGridOptions() {
-    const model = buildModel(this.hass || {}, this._config);
-    const columns = this._estimateContentColumns(model);
     const rows = Math.max(2, this.getCardSize());
     return {
-      columns,
-      min_columns: 3,
-      max_columns: 12,
+      columns: "full",
       rows,
       min_rows: 2,
     };
@@ -390,8 +347,7 @@ class HaDeviceSummary extends LitElement {
             },
           },
         },
-        { name: "building", selector: { text: {} } },
-        { name: "building_floor_ids", selector: { object: {} } },
+        { name: "floor_ids", selector: { object: {} } },
         { name: "show_devices", selector: { boolean: {} } },
         { name: "count_label", selector: { text: {} } },
         { name: "active_states", selector: { object: {} } },
@@ -411,8 +367,7 @@ class HaDeviceSummary extends LitElement {
         const labels = {
           title: "Titel",
           group_by: "Gruppierung",
-          building: "Gebäude (Text/ID/Alias)",
-          building_floor_ids: "Floor-IDs für Gebäude (YAML-Liste, z. B. [eg, og])",
+          floor_ids: "Stockwerke filtern (native Floor-IDs aus HA, YAML-Liste)",
           show_devices: "Geräte-Badges anzeigen",
           count_label: "Zähl-Label",
           active_states: "Aktive Zustände (YAML-Liste, z. B. [\"on\"])",
@@ -436,8 +391,7 @@ class HaDeviceSummary extends LitElement {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
-      building: "",
-      building_floor_ids: [],
+      floor_ids: [],
       show_devices: true,
     };
   }
