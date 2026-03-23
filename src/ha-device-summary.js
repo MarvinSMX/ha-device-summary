@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.5.0";
+const VERSION = "1.6.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -255,6 +255,7 @@ class HaDeviceSummary extends LitElement {
       count_label: "offen",
       truncate_entity: 0,
       card_columns: 1,
+      card_rows: 4,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -270,6 +271,7 @@ class HaDeviceSummary extends LitElement {
       count_label: "offen",
       truncate_entity: 0,
       card_columns: 1,
+      card_rows: 4,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -303,12 +305,80 @@ class HaDeviceSummary extends LitElement {
   getGridOptions() {
     const raw = Math.max(1, Number(this._config?.card_columns) || 1);
     const columns = Math.min(12, raw * 3);
-    const rows = Math.max(2, this.getCardSize());
+    const rows = Math.max(2, Number(this._config?.card_rows) || this.getCardSize());
     return {
       columns,
       min_columns: 3,
       rows,
       min_rows: 2,
+    };
+  }
+
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: "title", selector: { text: {} } },
+        {
+          name: "group_by",
+          selector: {
+            select: {
+              mode: "dropdown",
+              options: [
+                { value: "floor", label: "Nach Stockwerk" },
+                { value: "area", label: "Nach Bereich" },
+                { value: "both", label: "Stockwerk + Bereich" },
+              ],
+            },
+          },
+        },
+        { name: "show_devices", selector: { boolean: {} } },
+        {
+          type: "grid",
+          name: "",
+          flatten: true,
+          schema: [
+            { name: "card_columns", selector: { number: { min: 1, max: 4, step: 1 } } },
+            { name: "card_rows", selector: { number: { min: 2, max: 24, step: 1 } } },
+          ],
+        },
+        { name: "count_label", selector: { text: {} } },
+        { name: "active_states", selector: { object: {} } },
+        { name: "device_classes", selector: { object: {} } },
+        {
+          type: "grid",
+          name: "",
+          flatten: true,
+          schema: [
+            { name: "truncate_entity", selector: { number: { min: 0, max: 120, step: 1 } } },
+            { name: "unassigned_label", selector: { text: {} } },
+            { name: "no_area_label", selector: { text: {} } },
+          ],
+        },
+      ],
+      computeLabel: (schema) => {
+        const labels = {
+          title: "Titel",
+          group_by: "Gruppierung",
+          show_devices: "Geräte-Badges anzeigen",
+          card_columns: "Kartenbreite (Spalten)",
+          card_rows: "Kartenhöhe (Rows)",
+          count_label: "Zähl-Label",
+          active_states: "Aktive Zustände (YAML-Liste, z. B. [\"on\"])",
+          device_classes: "Device-Classes (YAML-Liste, z. B. [window, door])",
+          truncate_entity: "Text kürzen ab N Zeichen (0 = aus)",
+          unassigned_label: "Label ohne Stockwerk",
+          no_area_label: "Label ohne Bereich",
+        };
+        return labels[schema.name];
+      },
+      assertConfig: (config) => {
+        if (config.card_columns != null && Number(config.card_columns) < 1) {
+          throw new Error("card_columns muss >= 1 sein.");
+        }
+        if (config.card_rows != null && Number(config.card_rows) < 2) {
+          throw new Error("card_rows muss >= 2 sein.");
+        }
+      },
     };
   }
 
@@ -319,6 +389,7 @@ class HaDeviceSummary extends LitElement {
       group_by: "both",
       show_devices: true,
       card_columns: 2,
+      card_rows: 4,
     };
   }
 

@@ -117,3 +117,4 @@ Ausgabe: **`ha-device-summary.js` im Projektroot** (für HACS committen; `dist/`
 Wenn du **Mushroom** (separat über HACS) nutzt, gibt es weiterhin die YAML-Vorlage unter  
 `lovelace/mushroom-fenster-status-nach-stockwerk.yaml` (`custom:mushroom-template-card`).
 
+
