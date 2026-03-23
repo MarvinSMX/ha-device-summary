@@ -148,7 +148,7 @@ function computeView(hass, config) {
   };
 }
 
-export class HaDeviceSummary extends LitElement {
+class HaDeviceSummary extends LitElement {
   static properties = {
     hass: { attribute: false },
     _config: { state: true },
