@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "2.1.1";
+const VERSION = "2.2.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -257,7 +257,8 @@ class HaDeviceSummary extends LitElement {
       rows += 1;
       if (s.children) rows += s.children.length;
       if (m.show_devices) {
-        const ent = (sec) => Math.ceil((sec.entities?.length || 0) / 5);
+        // Conservative estimate: badges wrap earlier on narrow sections.
+        const ent = (sec) => Math.ceil((sec.entities?.length || 0) / 3);
         if (s.children) {
           for (const c of s.children) rows += ent(c);
         } else {
@@ -468,6 +469,7 @@ class HaDeviceSummary extends LitElement {
       display: block;
       min-width: 0;
       max-width: 100%;
+      height: 100%;
     }
 
     ha-card {
@@ -475,6 +477,7 @@ class HaDeviceSummary extends LitElement {
       width: 100%;
       max-width: 100%;
       overflow: hidden;
+      height: 100%;
     }
 
     .card-content {
@@ -484,6 +487,10 @@ class HaDeviceSummary extends LitElement {
       max-width: 100%;
       min-width: 0;
       overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .header-row {
@@ -531,6 +538,9 @@ class HaDeviceSummary extends LitElement {
       flex-direction: column;
       gap: 10px;
       min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      flex: 1 1 auto;
     }
 
     .section {
