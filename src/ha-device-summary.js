@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "2.5.0";
+const VERSION = "2.6.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -384,21 +384,36 @@ class HaDeviceSummary extends LitElement {
     `;
   }
 
-  _badgesRow(entities, activeStates, maxName) {
-    if (!entities?.length) return nothing;
-    return html`<div class="badges">${entities.map((e) => this._badge(e, activeStates, maxName))}</div>`;
+  _row(e, activeStates, maxName) {
+    const active = isActiveState(e.state, activeStates);
+    const name = maxName > 0 ? truncate(e.friendly, maxName) : e.friendly;
+    return html`
+      <button
+        type="button"
+        class="state-row ${active ? "state-row--active" : ""}"
+        @click=${() => this._moreInfo(e.entity_id)}
+        title="${e.friendly} (${e.state})"
+      >
+        <span class="state-row__dot" aria-hidden="true"></span>
+        <span class="state-row__name">${name}</span>
+      </button>
+    `;
   }
 
-  _block(sec, activeStates, showDevices) {
+  _sectionCard(sec, activeStates, showDevices) {
     const maxName = sec.maxName ?? 0;
     return html`
-      <div class="block">
-        <div class="block-head">
-          <span class="block-title">${sec.title}</span>
+      <section class="section-card">
+        <div class="section-card__head">
+          <span class="section-card__title">${sec.title}</span>
           <span class="meta-chip">${sec.subtitle}</span>
         </div>
-        ${showDevices ? this._badgesRow(sec.entities, activeStates, maxName) : ""}
-      </div>
+        ${showDevices && sec.entities?.length
+          ? html`<div class="section-card__rows">
+              ${sec.entities.map((e) => this._row(e, activeStates, maxName))}
+            </div>`
+          : nothing}
+      </section>
     `;
   }
 
@@ -417,31 +432,31 @@ class HaDeviceSummary extends LitElement {
 
     return html`
       <ha-card>
-        <div class="card-content">
-          <div class="header-row">
-            <div class="icon-wrap" style="color: ${iconColor}"><ha-icon icon=${icon}></ha-icon></div>
-            <div class="header-text">
-              <div class="title">${cfg.title ?? "Fenster"}</div>
-              <div class="subtitle">${summaryLine}</div>
-            </div>
+        <h1 class="card-header">
+          <div class="name">${cfg.title ?? "Fenster"}</div>
+          <div class="header-meta">
+            <ha-icon icon=${icon} style="color:${iconColor}"></ha-icon>
+            <span>${summaryLine}</span>
           </div>
-
+        </h1>
+        <div id="states" class="card-content">
           ${sumTotal === 0 ? html`<div class="empty">Keine passenden Geräte (Filter prüfen).</div>` : nothing}
-
-          <div class="sections">
+          <div class="states-lane">
             ${sections.map((s) => {
               if (s.kind === "both" && s.children) {
                 return html`
-                  <section class="section">
-                    <div class="section-head">
-                      <span class="section-title">${s.title}</span>
+                  <section class="group-column">
+                    <div class="group-column__head">
+                      <span class="group-column__title">${s.title}</span>
                       <span class="meta-chip">${s.subtitle}</span>
                     </div>
-                    ${s.children.map((c) => this._block({ ...c, maxName: s.maxName }, activeStates, showDevices))}
+                    ${s.children.map((c) =>
+                      this._sectionCard({ ...c, maxName: s.maxName }, activeStates, showDevices),
+                    )}
                   </section>
                 `;
               }
-              return html`<section class="section">${this._block(s, activeStates, showDevices)}</section>`;
+              return html`${this._sectionCard(s, activeStates, showDevices)}`;
             })}
           </div>
         </div>
@@ -454,103 +469,39 @@ class HaDeviceSummary extends LitElement {
       display: block;
       min-width: 0;
       max-width: 100%;
-      height: 100%;
     }
 
     ha-card {
       box-sizing: border-box;
       width: 100%;
       max-width: 100%;
-      overflow: hidden;
-      height: 100%;
     }
 
     .card-content {
-      padding: 12px;
-      box-sizing: border-box;
+      padding-top: 0;
+      padding-bottom: 12px;
       width: 100%;
       max-width: 100%;
-      min-width: 0;
-      overflow: hidden;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
+      box-sizing: border-box;
     }
 
-    .header-row {
-      display: flex;
+    .header-meta {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .icon-wrap {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-      flex-shrink: 0;
-    }
-
-    ha-icon {
-      --mdc-icon-size: 20px;
-    }
-
-    .header-text {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .title {
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.2;
-    }
-
-    .subtitle,
-    .empty,
-    .muted {
+      gap: 6px;
+      margin-left: auto;
       font-size: 12px;
       color: var(--secondary-text-color);
     }
 
-    .sections {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-width: 0;
-      min-height: 0;
-      overflow: auto;
-      flex: 1 1 auto;
+    .header-meta ha-icon {
+      --mdc-icon-size: 16px;
     }
 
-    .section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .section-head,
-    .block-head {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px 8px;
-    }
-
-    .section-title,
-    .block-title {
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.2;
-      min-width: 0;
-      max-width: 100%;
-      overflow-wrap: anywhere;
+    .empty,
+    .muted {
+      font-size: 12px;
+      color: var(--secondary-text-color);
     }
 
     .meta-chip {
@@ -564,76 +515,104 @@ class HaDeviceSummary extends LitElement {
       border: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent);
       color: var(--secondary-text-color);
       white-space: nowrap;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
-    .block {
+    .states-lane {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-top: 8px;
+      padding-bottom: 2px;
+      scrollbar-gutter: stable;
+    }
+
+    .group-column,
+    .section-card {
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      min-width: 0;
+      gap: 8px;
+      min-width: 280px;
+      max-width: min(380px, 92vw);
+      flex: 0 0 auto;
+      padding: 10px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--primary-text-color) 4%, var(--card-background-color));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--divider-color) 60%, transparent);
     }
 
-    .badges {
+    .group-column__head,
+    .section-card__head {
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       gap: 6px 8px;
-      width: 100%;
-      min-width: 0;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: flex-start;
+    .group-column__title,
+    .section-card__title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .section-card__rows {
+      display: flex;
+      flex-direction: column;
       gap: 6px;
+    }
+
+    .state-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       border: none;
-      border-radius: 999px;
-      padding: 5px 10px;
+      border-radius: 10px;
+      padding: 8px 10px;
       margin: 0;
       font: inherit;
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.3;
       text-align: left;
       color: var(--primary-text-color);
-      background: color-mix(in srgb, var(--primary-text-color) 7%, transparent);
+      background: color-mix(in srgb, var(--card-background-color) 85%, var(--primary-text-color));
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--divider-color) 70%, transparent);
       cursor: pointer;
       min-width: 0;
-      max-width: 100%;
+      width: 100%;
     }
 
-    .badge-label {
+    .state-row__name {
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: break-word;
+      min-width: 0;
     }
 
-    .badge:hover {
-      background: color-mix(in srgb, var(--primary-color) 14%, transparent);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 28%, transparent);
+    .state-row:hover {
+      background: color-mix(in srgb, var(--primary-color) 10%, var(--card-background-color));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 24%, transparent);
     }
 
-    .badge--active {
-      background: color-mix(in srgb, var(--error-color) 14%, transparent);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--error-color) 35%, transparent);
+    .state-row--active {
+      background: color-mix(in srgb, var(--error-color) 10%, var(--card-background-color));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--error-color) 30%, transparent);
     }
 
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      margin-top: 4px;
+    .state-row__dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
       flex-shrink: 0;
       background: color-mix(in srgb, var(--secondary-text-color) 45%, transparent);
     }
 
-    .badge--active .badge-dot {
+    .state-row--active .state-row__dot {
       background: var(--error-color);
     }
 
-    .badge:focus-visible {
+    .state-row:focus-visible {
       outline: 2px solid var(--primary-color);
       outline-offset: 2px;
     }

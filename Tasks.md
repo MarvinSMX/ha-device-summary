@@ -62,3 +62,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 - [x] Stockwerk-Filter auf native HA-Floors umgestellt: loor_ids (Floor-ID-Liste) ersetzt Building-Heuristik.
 
 - [x] Breite-Fix: getGridOptions().columns auf ull gesetzt (Sections-View standardmäßig vollbreit).
+
+- [x] Redesign nach Vorgabe: ha-card + card-header + card-content, nur **horizontaler** Inhaltsscroll (kein vertikaler), Mushroom-nahe Row-Optik statt Badge-Grid.
