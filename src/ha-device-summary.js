@@ -552,19 +552,23 @@ class HaDeviceSummary extends LitElement {
       min-height: 0;
     }
 
-    .section-floor:only-child .block {
-      flex: 1 1 auto;
-      min-height: 0;
-    }
-
     .section-floor:not(:only-child) .badges {
       max-height: min(var(--ha-ds-badge-max-h), 100%);
     }
 
-    .section-floor:only-child .badges {
+    .section-floor:only-child > .block:only-of-type {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .section-floor:only-child > .block:only-of-type .badges {
       flex: 1 1 auto;
       min-height: 0;
       max-height: none;
+    }
+
+    .section-floor:only-child > .block:not(:only-of-type) .badges {
+      max-height: min(var(--ha-ds-badge-max-h), 100%);
     }
 
     .floor-head,
