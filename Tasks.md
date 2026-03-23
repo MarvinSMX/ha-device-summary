@@ -16,6 +16,7 @@
 - [x] HA-Doku-konform: `getGridOptions()` implementiert; `card_columns` steuert echte Sections-Breite (`columns = card_columns * 3`).
 - [x] Visueller Editor: `static getConfigForm()` ergänzt (HA built-in form), inkl. `card_columns` und `card_rows`; `card_rows` steuert jetzt `getGridOptions().rows`.
 - [x] **Komplett-Redesign** auf HA-default-kompatibles Card-Layout: keine benutzerdefinierten Breiten-/Grid-Overrides mehr (`card_columns`, `card_rows` entfernt), `getGridOptions()` auf HA-Defaults (columns=6, rows aus `getCardSize`), `ha-card`/`card-content`-Struktur vereinfacht.
+- [x] Default-Breite dynamisch gemacht: `getGridOptions().columns` wird anhand Inhalt automatisch auf 3/6/9/12 gesetzt (mehr Gruppen/Badges => breiter).
 - [x] Installations-Fix für HACS: `hacs.json` ohne harte `homeassistant`-Mindestversion; Anleitung an `card-repo` / `card-overview-repo` angeglichen (`content_in_root`, Kategorie **Lovelace/Frontend**); Bundle ohne `export` (reines Modul-Side-Effect wie die Beispiele).
 
 ## Offen / optional (nächste Schritte)
