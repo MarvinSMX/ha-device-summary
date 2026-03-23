@@ -1,0 +1,152 @@
+# =============================================================================
+# Mushroom: Fenster-Status nach Stockwerk (Floors) und Raum (Areas)
+# =============================================================================
+# HACS (Mushroom – Pflicht für diese Card):
+#   1. HACS installieren: https://hacs.xyz/docs/setup/download
+#   2. In HA: HACS → Frontend → „+ Repository durchsuchen“ → „Mushroom“ suchen
+#      oder benutzerdefiniert: https://github.com/piitaya/lovelace-mushroom
+#   3. Kategorie „Lovelace“ wählen → herunterladen → ggf. HA neu starten
+#   4. Einstellungen → Dashboards → ⋮ → Ressourcen: Eintrag
+#      „/hacsfiles/lovelace-mushroom/mushroom.js“ (Typ: Modul) muss existieren
+#
+# Alternative zur HACS-Card dieses Repos: „HA Device Summary“ (custom:ha-device-summary).
+# Diese Datei ist reines YAML für Mushroom (custom:mushroom-template-card).
+#
+# Weitere Voraussetzungen:
+#   - Floors/Areas in HA (Einstellungen → Bereiche & Stockwerke)
+#   - Fenster: binary_sensor mit device_class: window
+#
+# Templates: floors(), floor_areas(), floor_entities(), area_entities() – siehe
+# https://www.home-assistant.io/docs/configuration/templating/
+# =============================================================================
+
+type: custom:mushroom-template-card
+entity: sun.sun
+layout: horizontal
+fill_container: true
+hide_state: true
+multiline_secondary: true
+icon: >-
+  {% set o = namespace(n=0) %}
+  {% for fid in floors() %}
+    {% for eid in floor_entities(fid) | reject('is_hidden_entity') %}
+      {% if eid.startswith('binary_sensor.')
+          and state_attr(eid, 'device_class') == 'window'
+          and is_state(eid, 'on') %}
+        {% set o.n = o.n + 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+  {% set on_floor = namespace(ids=[]) %}
+  {% for fid in floors() %}
+    {% for aid in floor_areas(fid) %}
+      {% set on_floor.ids = on_floor.ids + [aid] %}
+    {% endfor %}
+  {% endfor %}
+  {% for aid in areas() %}
+    {% if aid not in on_floor.ids %}
+      {% for eid in area_entities(aid) | reject('is_hidden_entity') %}
+        {% if eid.startswith('binary_sensor.')
+            and state_attr(eid, 'device_class') == 'window'
+            and is_state(eid, 'on') %}
+          {% set o.n = o.n + 1 %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  {{ 'mdi:window-open' if o.n > 0 else 'mdi:window-closed' }}
+icon_color: >-
+  {% set o = namespace(n=0) %}
+  {% for fid in floors() %}
+    {% for eid in floor_entities(fid) | reject('is_hidden_entity') %}
+      {% if eid.startswith('binary_sensor.')
+          and state_attr(eid, 'device_class') == 'window'
+          and is_state(eid, 'on') %}
+        {% set o.n = o.n + 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+  {% set on_floor = namespace(ids=[]) %}
+  {% for fid in floors() %}
+    {% for aid in floor_areas(fid) %}
+      {% set on_floor.ids = on_floor.ids + [aid] %}
+    {% endfor %}
+  {% endfor %}
+  {% for aid in areas() %}
+    {% if aid not in on_floor.ids %}
+      {% for eid in area_entities(aid) | reject('is_hidden_entity') %}
+        {% if eid.startswith('binary_sensor.')
+            and state_attr(eid, 'device_class') == 'window'
+            and is_state(eid, 'on') %}
+          {% set o.n = o.n + 1 %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  {{ 'red' if o.n > 0 else 'green' }}
+primary: Fenster
+secondary: >-
+  {% set sum_open = namespace(n=0) %}
+  {% set sum_tot = namespace(n=0) %}
+  {% set lines = namespace(rows=[]) %}
+  {% for fid in floors() %}
+    {% set floor_label = floor_name(fid) %}
+    {% set parts = namespace(items=[]) %}
+    {% for aid in floor_areas(fid) %}
+      {% set w = namespace(open=0, total=0) %}
+      {% for eid in area_entities(aid) | reject('is_hidden_entity') %}
+        {% if eid.startswith('binary_sensor.')
+            and state_attr(eid, 'device_class') == 'window' %}
+          {% set w.total = w.total + 1 %}
+          {% if is_state(eid, 'on') %}
+            {% set w.open = w.open + 1 %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if w.total > 0 %}
+        {% set sum_open.n = sum_open.n + w.open %}
+        {% set sum_tot.n = sum_tot.n + w.total %}
+        {% set short = area_name(aid) | truncate(14, True, '…') %}
+        {% set parts.items = parts.items +
+          ['{} {}/{}'.format(short, w.open, w.total)] %}
+      {% endif %}
+    {% endfor %}
+    {% if parts.items | length > 0 %}
+      {% set lines.rows = lines.rows +
+        ['{}: {}'.format(floor_label, ' · '.join(parts.items))] %}
+    {% endif %}
+  {% endfor %}
+  {% set on_floor = namespace(ids=[]) %}
+  {% for fid in floors() %}
+    {% for aid in floor_areas(fid) %}
+      {% set on_floor.ids = on_floor.ids + [aid] %}
+    {% endfor %}
+  {% endfor %}
+  {% set orphan = namespace(items=[]) %}
+  {% for aid in areas() %}
+    {% if aid not in on_floor.ids %}
+      {% set w = namespace(open=0, total=0) %}
+      {% for eid in area_entities(aid) | reject('is_hidden_entity') %}
+        {% if eid.startswith('binary_sensor.')
+            and state_attr(eid, 'device_class') == 'window' %}
+          {% set w.total = w.total + 1 %}
+          {% if is_state(eid, 'on') %}
+            {% set w.open = w.open + 1 %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if w.total > 0 %}
+        {% set sum_open.n = sum_open.n + w.open %}
+        {% set sum_tot.n = sum_tot.n + w.total %}
+        {% set short = area_name(aid) | truncate(14, True, '…') %}
+        {% set orphan.items = orphan.items +
+          ['{} {}/{}'.format(short, w.open, w.total)] %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if orphan.items | length > 0 %}
+    {% set lines.rows = lines.rows +
+      ['Ohne Stockwerk: {}'.format(' · '.join(orphan.items))] %}
+  {% endif %}
+  {{ sum_open.n }}/{{ sum_tot.n }} geöffnet
+  {{ lines.rows | join('\n') }}

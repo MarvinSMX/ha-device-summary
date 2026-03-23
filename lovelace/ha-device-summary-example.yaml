@@ -1,0 +1,10 @@
+# Nach Installation über HACS (Dashboard-Plugin „HA Device Summary“):
+type: custom:ha-device-summary
+
+# --- Optional ---
+# type: custom:ha-device-summary
+# title: Fenster
+# device_classes:
+#   - window
+# truncate_areas: 14
+# unassigned_label: Ohne Stockwerk

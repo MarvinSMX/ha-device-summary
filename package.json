@@ -1,0 +1,13 @@
+{
+  "name": "ha-device-summary",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lovelace card: device status by Home Assistant floors & areas",
+  "scripts": {
+    "build": "esbuild src/ha-device-summary.js --bundle --format=esm --minify --legal-comments=none --outfile=dist/ha-device-summary.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "lit": "^3.2.0"
+  }
+}
