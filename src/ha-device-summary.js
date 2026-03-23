@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.3.0";
+const VERSION = "1.4.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -428,11 +428,14 @@ class HaDeviceSummary extends LitElement {
       --ha-ds-gap: 8px;
       --ha-ds-chip-radius: 18px;
       --ha-ds-badge-rows: 2;
+      --ha-ds-group-rows: 2;
     }
 
     ha-card {
       height: auto;
       box-sizing: border-box;
+      width: max-content;
+      min-width: 100%;
     }
 
     .card-inner {
@@ -441,6 +444,8 @@ class HaDeviceSummary extends LitElement {
       display: flex;
       flex-direction: column;
       gap: var(--ha-ds-gap);
+      width: max-content;
+      min-width: 100%;
     }
 
     .pad {
@@ -519,9 +524,15 @@ class HaDeviceSummary extends LitElement {
     }
 
     .sections {
-      display: flex;
-      flex-direction: column;
-      gap: var(--ha-ds-gap);
+      display: grid;
+      grid-template-rows: repeat(var(--ha-ds-group-rows, 2), auto);
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(280px, max-content);
+      gap: var(--ha-ds-gap) 12px;
+      align-items: start;
+      justify-items: stretch;
+      width: max-content;
+      min-width: 100%;
     }
 
     .section-floor {
@@ -530,10 +541,7 @@ class HaDeviceSummary extends LitElement {
       gap: 6px;
       padding: 0;
       margin: 0;
-    }
-
-    .section-floor + .section-floor {
-      margin-top: 12px;
+      min-width: 280px;
     }
 
     .floor-head,
@@ -570,10 +578,8 @@ class HaDeviceSummary extends LitElement {
       max-width: 100%;
       align-items: start;
       justify-items: start;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding-bottom: 2px;
-      scrollbar-gutter: stable;
+      overflow: visible;
+      padding-bottom: 0;
     }
 
     .badge {
