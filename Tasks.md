@@ -64,3 +64,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 - [x] Breite-Fix: getGridOptions().columns auf ull gesetzt (Sections-View standardmäßig vollbreit).
 
 - [x] Redesign nach Vorgabe: ha-card + card-header + card-content, nur **horizontaler** Inhaltsscroll (kein vertikaler), Mushroom-nahe Row-Optik statt Badge-Grid.
+
+- [x] Auf Wunsch umgestellt: Haupt-Card vollständig durch Inner-Card ersetzt. Es gibt jetzt nur noch custom:ha-device-summary als manuell kombinierbare Gruppenkarte.

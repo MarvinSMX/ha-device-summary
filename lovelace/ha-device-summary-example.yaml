@@ -1,23 +1,13 @@
 # HA Device Summary — Beispiele (nach HACS-Installation)
 
-# Standard: Stockwerk → Räume, Badges, „offen“ = on
+# Einzige Component: frei kombinierbare Inner Group Card
+# (z. B. mehrere Karten in Grid/Stack manuell zusammensetzen)
+
 type: custom:ha-device-summary
-
-# --- Stockwerk-Filter über native HA Floor-IDs (empfohlen) ---
-# type: custom:ha-device-summary
-# title: Gebäude A (ausgewählte Stockwerke)
-# floor_ids:
-#   - erdgeschoss
-#   - obergeschoss
-# group_by: floor
-# show_devices: true
-
-# --- Nur Raum (flache Liste nach Bereich) ---
-# type: custom:ha-device-summary
-# group_by: area
-# show_devices: true
-
-# --- Nur Zahlen, ohne Badges ---
-# type: custom:ha-device-summary
-# group_by: both
-# show_devices: false
+title: EG + Zwischenbau
+subtitle: 3/10 offen
+active_states: ["on"]
+entities:
+  - binary_sensor.fenster_wohnzimmer
+  - binary_sensor.fenster_kueche
+  - binary_sensor.fenster_bad
