@@ -42,6 +42,7 @@ type: custom:ha-device-summary
 | **truncate_entity** | Zahl | Text kürzen ab N Zeichen; **`0` oder weglassen = kein Abschneiden** (Standard). Alias: **truncate_areas** (nur wenn `truncate_entity` fehlt) |
 | **unassigned_label** | Text | Block für Bereiche/Geräte **ohne** Stockwerk |
 | **no_area_label** | Text | Gruppe für Entitäten **ohne** Bereich |
+| **card_columns** | Zahl | Gesamtkarte spannt über N Dashboard-Spalten (grid-column: span N), Standard: 1 |
 
 Beispiele:
 
@@ -76,11 +77,12 @@ type: custom:ha-device-summary
 group_by: both
 show_devices: true
 active_states: ["on"]
+card_columns: 2
 ```
 
 ## Styling (Mushroom-nah, kompakt)
 
-Badges liegen in einem **Raster mit maximal 2 Zeilen** und **beliebig vielen Spalten** (CSS Grid: `grid-auto-flow: column`). Es werden zuerst die erste Spalte von oben nach unten gefüllt, dann die nächste Spalte — bei vielen Geräten kann horizontal **gescrollt** werden.
+Gruppen und Badges liegen in einem **Raster mit maximal 2 Zeilen** und **beliebig vielen Spalten** (CSS Grid: `grid-auto-flow: column`). Es werden zuerst die Spalten von oben nach unten gefüllt, dann nach rechts erweitert.
 
 Per Theme / `card_mod` (falls installiert) anpassbar:
 
@@ -90,10 +92,11 @@ Per Theme / `card_mod` (falls installiert) anpassbar:
 | `--ha-ds-gap` | Abstand zwischen Gruppen / Blöcken |
 | `--ha-ds-chip-radius` | Pillen-Radius (Badges, Zähler-Chips) |
 | `--ha-ds-badge-rows` | Zeilen im Badge-Raster (Standard: **2**) |
+| `--ha-ds-group-rows` | Zeilen im Gruppen-Raster (Standard: **2**) |
 
 Stockwerk-/Raum-Gruppen haben **keine** eigene Container-Karte — nur Überschrift, Meta-Chip und Badges.
 
-**Breite der Karte:** Karten-Spalte breiter ziehen oder über mehrere Spannen legen — dann passen mehr Badge-Spalten nebeneinander, bevor horizontal gescrollt werden muss.
+**Breite der Karte:** Die Karte wächst in der Breite mit (`width: max-content`, `min-width: 100%`). Bei mehr Gruppen werden zusätzliche Spalten erzeugt statt zusätzliche Zeilen.
 
 ## Voraussetzungen
 
@@ -113,3 +116,4 @@ Ausgabe: **`ha-device-summary.js` im Projektroot** (für HACS committen; `dist/`
 
 Wenn du **Mushroom** (separat über HACS) nutzt, gibt es weiterhin die YAML-Vorlage unter  
 `lovelace/mushroom-fenster-status-nach-stockwerk.yaml` (`custom:mushroom-template-card`).
+

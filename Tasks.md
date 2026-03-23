@@ -12,6 +12,7 @@
 - [x] UI: kompakter **Mushroom-Stil**; Badges **breite = Text**; **Zeilen-Umbruch in die Breite** (`flex-direction: row` + `wrap`); Karte `height: auto` (kein Stretch in extrem hohe Zellen).
 - [x] Keine **Gruppierungs-Container** mehr (kein extra Rahmen/Hintergrund pro Stockwerk — nur Abstand zwischen Gruppen).
 - [x] Badge-Layout: **Grid max. 2 Reihen × Y Spalten** (`grid-template-rows` + `grid-auto-flow: column`), horizontal scrollbar; optional `--ha-ds-badge-rows`.
+- [x] Gruppen-Layout: ebenfalls **Grid max. 2 Reihen × Y Spalten** (`--ha-ds-group-rows: 2`), Card wächst in Breite (`width: max-content`) statt zusätzliche Gruppen untereinander.
 - [x] Installations-Fix für HACS: `hacs.json` ohne harte `homeassistant`-Mindestversion; Anleitung an `card-repo` / `card-overview-repo` angeglichen (`content_in_root`, Kategorie **Lovelace/Frontend**); Bundle ohne `export` (reines Modul-Side-Effect wie die Beispiele).
 
 ## Offen / optional (nächste Schritte)

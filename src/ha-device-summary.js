@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -254,6 +254,7 @@ class HaDeviceSummary extends LitElement {
       active_states: ["on"],
       count_label: "offen",
       truncate_entity: 0,
+      card_columns: 1,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -268,6 +269,7 @@ class HaDeviceSummary extends LitElement {
       active_states: ["on"],
       count_label: "offen",
       truncate_entity: 0,
+      card_columns: 1,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -275,6 +277,8 @@ class HaDeviceSummary extends LitElement {
     if (config.truncate_entity === undefined && config.truncate_areas != null) {
       merged.truncate_entity = config.truncate_areas;
     }
+    const span = Math.max(1, Number(merged.card_columns) || 1);
+    this.style.gridColumn = `span ${span}`;
     this._config = merged;
   }
 
@@ -302,6 +306,7 @@ class HaDeviceSummary extends LitElement {
       device_classes: ["window"],
       group_by: "both",
       show_devices: true,
+      card_columns: 2,
     };
   }
 
@@ -429,13 +434,14 @@ class HaDeviceSummary extends LitElement {
       --ha-ds-chip-radius: 18px;
       --ha-ds-badge-rows: 2;
       --ha-ds-group-rows: 2;
+      grid-column: span 1;
+      min-width: 0;
     }
 
     ha-card {
       height: auto;
       box-sizing: border-box;
-      width: max-content;
-      min-width: 100%;
+      width: 100%;
     }
 
     .card-inner {
@@ -444,8 +450,7 @@ class HaDeviceSummary extends LitElement {
       display: flex;
       flex-direction: column;
       gap: var(--ha-ds-gap);
-      width: max-content;
-      min-width: 100%;
+      width: 100%;
     }
 
     .pad {
@@ -531,8 +536,8 @@ class HaDeviceSummary extends LitElement {
       gap: var(--ha-ds-gap) 12px;
       align-items: start;
       justify-items: stretch;
-      width: max-content;
-      min-width: 100%;
+      width: 100%;
+      min-width: 0;
     }
 
     .section-floor {
