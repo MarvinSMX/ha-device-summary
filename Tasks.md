@@ -9,6 +9,7 @@
 - [x] Implementierung: `src/ha-device-summary.js` (Lit 3), Build via `esbuild` → `npm run build`.
 - [x] Beispiel-YAML: `lovelace/ha-device-summary-example.yaml` (`type: custom:ha-device-summary`).
 - [x] Darstellung: `group_by` floor | area | both; `show_devices` mit **Badges** (aktiver Zustand hervorgehoben, Klick → more-info); `active_states`, `count_label`, `truncate_entity` / Alias `truncate_areas`.
+- [x] UI: kompakter **Mushroom-Stil** (Chips, weiche Flächen); Badges **breite = Text** (`width: max-content`, Zeilenumbruch im Label); **Spalten-Umbruch** (`flex-flow: column wrap`) + `--ha-ds-badge-max-h`; bei einer Sektion volle Resthöhe der Karte.
 - [x] Installations-Fix für HACS: `hacs.json` ohne harte `homeassistant`-Mindestversion; Anleitung an `card-repo` / `card-overview-repo` angeglichen (`content_in_root`, Kategorie **Lovelace/Frontend**); Bundle ohne `export` (reines Modul-Side-Effect wie die Beispiele).
 
 ## Offen / optional (nächste Schritte)

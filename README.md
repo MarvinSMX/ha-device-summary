@@ -39,7 +39,7 @@ type: custom:ha-device-summary
 | **active_states** | Liste | Zustände, die als „mitgezählt“ gelten (Standard: `on`, z. B. offenes Fenster) |
 | **count_label** | Text | Beschriftung in der Zählung (Standard: `offen`) → z. B. `2/5 offen` |
 | **device_classes** | Liste | `binary_sensor.device_class` (Standard: `window`) |
-| **truncate_entity** | Zahl | max. Zeichen für Badge-Text (Alias: **truncate_areas**) |
+| **truncate_entity** | Zahl | Text kürzen ab N Zeichen; **`0` oder weglassen = kein Abschneiden** (Standard). Alias: **truncate_areas** (nur wenn `truncate_entity` fehlt) |
 | **unassigned_label** | Text | Block für Bereiche/Geräte **ohne** Stockwerk |
 | **no_area_label** | Text | Gruppe für Entitäten **ohne** Bereich |
 
@@ -77,6 +77,20 @@ group_by: both
 show_devices: true
 active_states: ["on"]
 ```
+
+## Styling (Mushroom-nah, kompakt)
+
+Auf der Karte kannst du per Theme / `card_mod` (falls installiert) anpassen:
+
+| CSS-Variable (auf `ha-device-summary`) | Wirkung |
+|----------------------------------------|---------|
+| `--ha-ds-pad` | Innenabstand der Karte |
+| `--ha-ds-gap` | Abstand zwischen Blöcken |
+| `--ha-ds-radius` | Ecken der Bereichs-Kacheln |
+| `--ha-ds-chip-radius` | Pillen-Radius (Badges, Zähler-Chips) |
+| `--ha-ds-badge-max-h` | max. Höhe der Badge-Spalte bei **mehreren** Stockwerks-Blöcken (Spalten-Umbruch nach rechts); Standard `min(42vh, 360px)` |
+
+Bei **nur einem** Stockwerks-Block füllen die Badges die verfügbare Kartenhöhe (`height: 100%` am Host) und brechen bei Platzmangel in weitere Spalten um.
 
 ## Voraussetzungen
 

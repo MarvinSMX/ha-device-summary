@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.1.1";
+const VERSION = "1.2.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -96,7 +96,10 @@ function buildModel(hass, config) {
   const labelWord = config.count_label || "offen";
   const unassignedFloor = config.unassigned_label || "Ohne Stockwerk";
   const noAreaLabel = config.no_area_label || "Ohne Bereich";
-  const maxName = config.truncate_entity ?? 22;
+  const maxName =
+    config.truncate_entity == null || config.truncate_entity === ""
+      ? 0
+      : Number(config.truncate_entity) || 0;
 
   const all = collectEntities(hass, deviceClasses);
   const sumTotal = all.length;
@@ -250,30 +253,29 @@ class HaDeviceSummary extends LitElement {
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
-      truncate_areas: 14,
-      truncate_entity: 22,
+      truncate_entity: 0,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
   }
 
   setConfig(config) {
-    this._config = {
+    const defaults = {
       title: "Fenster",
       device_classes: ["window"],
       group_by: "both",
       show_devices: true,
       active_states: ["on"],
       count_label: "offen",
-      truncate_areas: 14,
-      truncate_entity: 22,
+      truncate_entity: 0,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
-      ...config,
     };
-    if (this._config.truncate_entity == null && this._config.truncate_areas != null) {
-      this._config.truncate_entity = this._config.truncate_areas;
+    const merged = { ...defaults, ...config };
+    if (config.truncate_entity === undefined && config.truncate_areas != null) {
+      merged.truncate_entity = config.truncate_areas;
     }
+    this._config = merged;
   }
 
   getCardSize() {
@@ -315,7 +317,8 @@ class HaDeviceSummary extends LitElement {
 
   _badge(e, activeStates, maxName) {
     const active = isActiveState(e.state, activeStates);
-    const name = truncate(e.friendly, maxName);
+    const name =
+      maxName > 0 ? truncate(e.friendly, maxName) : e.friendly;
     return html`
       <button
         type="button"
@@ -323,8 +326,8 @@ class HaDeviceSummary extends LitElement {
         @click=${() => this._moreInfo(e.entity_id)}
         title="${e.friendly} (${e.state})"
       >
-        <span class="badge-dot"></span>
-        ${name}
+        <span class="badge-dot" aria-hidden="true"></span>
+        <span class="badge-label">${name}</span>
       </button>
     `;
   }
@@ -337,12 +340,12 @@ class HaDeviceSummary extends LitElement {
   }
 
   _block(sec, activeStates, showDevices) {
-    const maxName = sec.maxName ?? 22;
+    const maxName = sec.maxName ?? 0;
     return html`
       <div class="block">
         <div class="block-head">
           <span class="block-title">${sec.title}</span>
-          <span class="block-sub">${sec.subtitle}</span>
+          <span class="meta-chip">${sec.subtitle}</span>
         </div>
         ${showDevices ? this._badgesRow(sec.entities, activeStates, maxName) : ""}
       </div>
@@ -393,7 +396,7 @@ class HaDeviceSummary extends LitElement {
                   <div class="section-floor">
                     <div class="floor-head">
                       <span class="floor-title">${s.title}</span>
-                      <span class="floor-sub">${s.subtitle}</span>
+                      <span class="meta-chip">${s.subtitle}</span>
                     </div>
                     ${s.children.map((c) =>
                       this._block(
@@ -418,169 +421,253 @@ class HaDeviceSummary extends LitElement {
   }
 
   static styles = css`
-    ha-card {
-      --padding: 12px;
+    :host {
+      display: block;
+      height: 100%;
+      --ha-ds-pad: 10px;
+      --ha-ds-gap: 8px;
+      --ha-ds-radius: 12px;
+      --ha-ds-chip-radius: 18px;
+      --ha-ds-badge-max-h: min(42vh, 360px);
     }
-    .card-inner {
-      padding: var(--padding);
+
+    ha-card {
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      box-sizing: border-box;
     }
+
+    .card-inner {
+      box-sizing: border-box;
+      padding: var(--ha-ds-pad);
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: var(--ha-ds-gap);
+    }
+
     .pad {
-      padding: var(--padding);
+      padding: var(--ha-ds-pad);
     }
     .muted {
       color: var(--secondary-text-color);
     }
     .empty {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--secondary-text-color);
-      padding: 4px 0;
+      padding: 2px 0;
     }
+
     .row {
       display: flex;
       flex-direction: row;
-      align-items: flex-start;
-      gap: 12px;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
+
     .icon-wrap {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: color-mix(in srgb, var(--card-background-color) 86%, var(--primary-text-color));
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+      color: inherit;
       flex-shrink: 0;
     }
+
     ha-icon {
-      width: 24px;
-      height: 24px;
-      --mdc-icon-size: 24px;
+      width: 20px;
+      height: 20px;
+      --mdc-icon-size: 20px;
     }
+
     .text {
       min-width: 0;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
+
     .primary {
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 15px;
+      font-weight: 600;
       line-height: 1.2;
+      letter-spacing: 0.01em;
       color: var(--primary-text-color);
     }
+
     .summary-line {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--secondary-text-color);
+      line-height: 1.25;
     }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1;
+      padding: 4px 9px;
+      border-radius: var(--ha-ds-chip-radius);
+      color: var(--secondary-text-color);
+      background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+      border: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent);
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
     .sections {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      flex: 1 1 auto;
+      gap: var(--ha-ds-gap);
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-gutter: stable;
     }
+
     .section-floor {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--card-background-color) 92%, var(--primary-text-color));
-      border: 1px solid color-mix(in srgb, var(--divider-color) 70%, transparent);
-    }
-    .section-floor:first-of-type {
-      margin-top: 0;
-    }
-    .floor-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 6px 10px;
-    }
-    .floor-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--primary-text-color);
-    }
-    .floor-sub {
-      font-size: 12px;
-      color: var(--secondary-text-color);
-    }
-    .block {
-      display: flex;
-      flex-direction: column;
       gap: 6px;
-      margin-left: 0;
+      padding: 8px 10px;
+      border-radius: var(--ha-ds-radius);
+      background: color-mix(in srgb, var(--primary-text-color) 4%, var(--card-background-color));
+      border: 1px solid color-mix(in srgb, var(--divider-color) 65%, transparent);
+      box-shadow: 0 1px 2px color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+      flex: 0 1 auto;
+      min-height: 0;
     }
-    .section-floor .block {
-      margin-left: 2px;
-      padding-left: 8px;
-      border-left: 2px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
+
+    .section-floor:only-child {
+      flex: 1 1 auto;
+      min-height: 0;
     }
+
+    .section-floor:only-child .block {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .section-floor:not(:only-child) .badges {
+      max-height: min(var(--ha-ds-badge-max-h), 100%);
+    }
+
+    .section-floor:only-child .badges {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+    }
+
+    .floor-head,
     .block-head {
       display: flex;
       flex-wrap: wrap;
-      align-items: baseline;
-      gap: 6px 10px;
+      align-items: center;
+      gap: 6px 8px;
     }
+
+    .floor-title,
     .block-title {
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--primary-text-color);
+      line-height: 1.2;
+      flex: 0 1 auto;
+      min-width: 0;
     }
-    .block-sub {
-      font-size: 12px;
-      color: var(--secondary-text-color);
+
+    .block {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-height: 0;
     }
+
+    .section-floor .block {
+      padding-left: 6px;
+      border-left: 2px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
+    }
+
     .badges {
       display: flex;
+      flex-direction: column;
       flex-wrap: wrap;
-      gap: 6px;
+      align-content: flex-start;
+      align-items: flex-start;
+      gap: 5px 8px;
+      width: 100%;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 1px;
     }
+
     .badge {
       display: inline-flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
+      box-sizing: border-box;
+      width: max-content;
+      max-width: 100%;
+      margin: 0;
+      padding: 5px 11px 5px 9px;
+      border: none;
+      border-radius: var(--ha-ds-chip-radius);
       font-family: inherit;
       font-size: 12px;
-      line-height: 1.1;
-      padding: 7px 10px;
-      margin: 0;
-      border-radius: 999px;
-      border: 1px solid color-mix(in srgb, var(--divider-color) 75%, transparent);
-      background: color-mix(in srgb, var(--card-background-color) 82%, var(--disabled-color));
-      color: var(--primary-text-color);
-      cursor: pointer;
-      max-width: 100%;
-      text-align: center;
-      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-    }
-    .badge:hover {
-      background: color-mix(in srgb, var(--primary-color) 14%, var(--card-background-color));
-      border-color: color-mix(in srgb, var(--primary-color) 35%, var(--divider-color));
-      transform: translateY(-1px);
-    }
-    .badge--active {
-      background: color-mix(in srgb, var(--error-color) 18%, var(--card-background-color));
-      border-color: color-mix(in srgb, var(--error-color) 45%, var(--divider-color));
       font-weight: 500;
+      line-height: 1.3;
+      text-align: left;
+      cursor: pointer;
+      color: var(--primary-text-color);
+      background: color-mix(in srgb, var(--primary-text-color) 7%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--divider-color) 70%, transparent);
+      transition: background 0.12s ease, box-shadow 0.12s ease;
     }
+
+    .badge-label {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .badge:hover {
+      background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 28%, transparent);
+    }
+
+    .badge--active {
+      background: color-mix(in srgb, var(--error-color) 14%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--error-color) 35%, transparent);
+    }
+
     .badge-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
+      margin-top: 4px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--secondary-text-color) 70%, transparent);
       flex-shrink: 0;
+      background: color-mix(in srgb, var(--secondary-text-color) 45%, transparent);
     }
+
     .badge--active .badge-dot {
       background: var(--error-color);
     }
+
     .badge:focus-visible {
       outline: 2px solid var(--primary-color);
       outline-offset: 2px;
     }
+
   `;
 }
 
