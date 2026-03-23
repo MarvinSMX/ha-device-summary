@@ -1,39 +1,44 @@
 # HA Device Summary
 
-Lovelace Custom Card für Home Assistant.
-
-Diese Version enthält **nur eine Component** (`custom:ha-device-summary`),
-die als **Inner Group Card** gedacht ist. Du kombinierst mehrere Instanzen
-manuell in deinem Dashboard-Grid/Stack.
+Eine Gruppen-Card, die Entitäten direkt aus **Home Assistant Stockwerken (Floors)** laden kann.
 
 ## Installation mit HACS
 
-1. [HACS](https://hacs.xyz/) ist eingerichtet.
-2. HACS → Frontend → benutzerdefiniertes Repository hinzufügen:
-   `https://github.com/MarvinSMX/ha-device-summary`
-3. Installieren, HA neu laden, Browser mit `Strg+Shift+R` aktualisieren.
+1. HACS → Frontend → Repository `https://github.com/MarvinSMX/ha-device-summary`
+2. Installieren, HA neu laden, Browser Hard-Reload (`Strg+Shift+R`)
 
 ## Konfiguration
+
+### A) Automatisch aus HA-Stockwerken (empfohlen)
 
 ```yaml
 type: custom:ha-device-summary
 title: EG + Zwischenbau
-subtitle: 3/10 offen
+floor_ids: [erdgeschoss, zwischenbau]
+entity_domain: binary_sensor
+device_classes: [window]
 active_states: ["on"]
+use_native_rows: true
+```
+
+### B) Manuelle Entitätenliste (übersteuert floor_ids)
+
+```yaml
+type: custom:ha-device-summary
+title: EG + Zwischenbau
 entities:
   - binary_sensor.fenster_wohnzimmer
   - binary_sensor.fenster_kueche
-  - binary_sensor.fenster_bad
+active_states: ["on"]
+use_native_rows: false
 ```
 
-### Felder
+## Optionen
 
-- `title` (optional): Überschrift
-- `subtitle` (optional): Zusatztext rechts im Header
-- `active_states` (optional): Liste aktiver States, Standard `['on']`
-- `entities` (**pflicht**): Liste der Entitäten für die Gruppe
-
-## Hinweise
-
-- Die frühere automatische Sammel-Logik (Floors/Areas) wurde entfernt.
-- Du baust dein Layout jetzt komplett selbst über mehrere Karteninstanzen.
+- `floor_ids`: Liste nativer HA-Floor-IDs
+- `entity_domain`: Domain-Filter (z. B. `binary_sensor`)
+- `device_classes`: Device-Class-Filter (z. B. `[window]`)
+- `entities`: optionale manuelle Liste (hat Vorrang)
+- `active_states`: Zustände für aktive Markierung (default `['on']`)
+- `use_native_rows`: `true` = `hui-simple-entity-row`, `false` = Badge-Liste
+- `subtitle`: optional; wenn leer, wird automatisch `aktiv/gesamt offen` angezeigt

@@ -66,3 +66,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 - [x] Redesign nach Vorgabe: ha-card + card-header + card-content, nur **horizontaler** Inhaltsscroll (kein vertikaler), Mushroom-nahe Row-Optik statt Badge-Grid.
 
 - [x] Auf Wunsch umgestellt: Haupt-Card vollständig durch Inner-Card ersetzt. Es gibt jetzt nur noch custom:ha-device-summary als manuell kombinierbare Gruppenkarte.
+
+- [x] Wunsch umgesetzt: Entitäten wieder aus HA-Stockwerken (loor_ids) laden; optional native hui-simple-entity-row oder Badge-Liste (use_native_rows).

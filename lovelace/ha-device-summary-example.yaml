@@ -1,13 +1,11 @@
-# HA Device Summary — Beispiele (nach HACS-Installation)
-
-# Einzige Component: frei kombinierbare Inner Group Card
-# (z. B. mehrere Karten in Grid/Stack manuell zusammensetzen)
+# HA Device Summary — Beispiel
 
 type: custom:ha-device-summary
 title: EG + Zwischenbau
-subtitle: 3/10 offen
+floor_ids:
+  - erdgeschoss
+  - zwischenbau
+entity_domain: binary_sensor
+device_classes: [window]
 active_states: ["on"]
-entities:
-  - binary_sensor.fenster_wohnzimmer
-  - binary_sensor.fenster_kueche
-  - binary_sensor.fenster_bad
+use_native_rows: true
