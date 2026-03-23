@@ -13,6 +13,7 @@
 - [x] Keine **Gruppierungs-Container** mehr (kein extra Rahmen/Hintergrund pro Stockwerk — nur Abstand zwischen Gruppen).
 - [x] Badge-Layout: **Grid max. 2 Reihen × Y Spalten** (`grid-template-rows` + `grid-auto-flow: column`), horizontal scrollbar; optional `--ha-ds-badge-rows`.
 - [x] Gruppen-Layout: ebenfalls **Grid max. 2 Reihen × Y Spalten** (`--ha-ds-group-rows: 2`), Card wächst in Breite (`width: max-content`) statt zusätzliche Gruppen untereinander.
+- [x] HA-Doku-konform: `getGridOptions()` implementiert; `card_columns` steuert echte Sections-Breite (`columns = card_columns * 3`).
 - [x] Installations-Fix für HACS: `hacs.json` ohne harte `homeassistant`-Mindestversion; Anleitung an `card-repo` / `card-overview-repo` angeglichen (`content_in_root`, Kategorie **Lovelace/Frontend**); Bundle ohne `export` (reines Modul-Side-Effect wie die Beispiele).
 
 ## Offen / optional (nächste Schritte)
