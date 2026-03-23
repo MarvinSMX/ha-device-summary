@@ -42,7 +42,6 @@ type: custom:ha-device-summary
 | **truncate_entity** | Zahl | Text kürzen ab N Zeichen; **`0` oder weglassen = kein Abschneiden** (Standard). Alias: **truncate_areas** (nur wenn `truncate_entity` fehlt) |
 | **unassigned_label** | Text | Block für Bereiche/Geräte **ohne** Stockwerk |
 | **no_area_label** | Text | Gruppe für Entitäten **ohne** Bereich |
-| **card_columns** | Zahl | Gesamtkarte im **Sections-View** breiter: `getGridOptions().columns = card_columns * 3` (1→3, 2→6, 3→9, 4→12). Standard: `1` |
 
 Beispiele:
 
@@ -77,7 +76,6 @@ type: custom:ha-device-summary
 group_by: both
 show_devices: true
 active_states: ["on"]
-card_columns: 2  # Sections-Grid: 6 von 12 Spalten
 ```
 
 ## Styling (Mushroom-nah, kompakt)
@@ -96,7 +94,7 @@ Per Theme / `card_mod` (falls installiert) anpassbar:
 
 Stockwerk-/Raum-Gruppen haben **keine** eigene Container-Karte — nur Überschrift, Meta-Chip und Badges.
 
-**Breite der Karte:** Die Karte wächst in der Breite mit (`width: max-content`, `min-width: 100%`). Bei mehr Gruppen werden zusätzliche Spalten erzeugt statt zusätzliche Zeilen.
+**Breite der Karte:** Die Card nutzt jetzt die Home-Assistant-Defaults für Layout/Sizing. Breite und Position werden damit vollständig vom Dashboard-Layout (Sections/Masonry) gesteuert.
 
 ## Voraussetzungen
 
@@ -116,5 +114,6 @@ Ausgabe: **`ha-device-summary.js` im Projektroot** (für HACS committen; `dist/`
 
 Wenn du **Mushroom** (separat über HACS) nutzt, gibt es weiterhin die YAML-Vorlage unter  
 `lovelace/mushroom-fenster-status-nach-stockwerk.yaml` (`custom:mushroom-template-card`).
+
 
 

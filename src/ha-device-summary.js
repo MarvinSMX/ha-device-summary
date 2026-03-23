@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.6.0";
+const VERSION = "2.0.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -18,9 +18,9 @@ function matchesDevice(hass, entityId, deviceClasses) {
 }
 
 function truncate(str, max) {
-  if (!str) return "";
+  if (!str || max <= 0) return str || "";
   if (str.length <= max) return str;
-  return `${str.slice(0, Math.max(0, max - 1))}…`;
+  return `${str.slice(0, Math.max(0, max - 1))}...`;
 }
 
 function sortedFloors(hass) {
@@ -46,9 +46,6 @@ function byFriendly(a, b) {
   });
 }
 
-/**
- * Alle passenden Entitäten mit Floor/Area-Metadaten.
- */
 function collectEntities(hass, deviceClasses) {
   const out = [];
   for (const entry of Object.values(hass?.entities || {})) {
@@ -81,9 +78,6 @@ function countLabel(active, total, labelWord) {
   return `${active}/${total} ${labelWord}`;
 }
 
-/**
- * @returns {{ sections: object[], sumActive: number, sumTotal: number, openAny: boolean }}
- */
 function buildModel(hass, config) {
   const deviceClasses = Array.isArray(config.device_classes)
     ? config.device_classes
@@ -96,17 +90,13 @@ function buildModel(hass, config) {
   const labelWord = config.count_label || "offen";
   const unassignedFloor = config.unassigned_label || "Ohne Stockwerk";
   const noAreaLabel = config.no_area_label || "Ohne Bereich";
-  const maxName =
-    config.truncate_entity == null || config.truncate_entity === ""
-      ? 0
-      : Number(config.truncate_entity) || 0;
+  const maxName = Number(config.truncate_entity) || 0;
 
   const all = collectEntities(hass, deviceClasses);
   const sumTotal = all.length;
   const sumActive = all.filter((e) => isActiveState(e.state, activeStates)).length;
   const openAny = sumActive > 0;
 
-  /** @type {object[]} */
   const sections = [];
 
   if (groupBy === "floor") {
@@ -144,10 +134,7 @@ function buildModel(hass, config) {
       byArea.get(key).push(e);
     }
     for (const [areaId, list] of byArea) {
-      const title =
-        areaId === "__none__"
-          ? noAreaLabel
-          : hass?.areas?.[areaId]?.name || areaId;
+      const title = areaId === "__none__" ? noAreaLabel : hass?.areas?.[areaId]?.name || areaId;
       const act = list.filter((e) => isActiveState(e.state, activeStates)).length;
       sections.push({
         kind: "area",
@@ -157,24 +144,15 @@ function buildModel(hass, config) {
         maxName,
       });
     }
-    sections.sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "", undefined, {
-        sensitivity: "base",
-      }),
-    );
+    sections.sort((a, b) => (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" }));
     return { sections, sumActive, sumTotal, openAny, showDevices, activeStates };
   }
 
-  // group_by === "both": Stockwerk → Räume
   for (const floor of sortedFloors(hass)) {
     const floorEntities = all.filter((e) => e.floor_id === floor.floor_id);
     if (!floorEntities.length) continue;
     const areas = areasOnFloor(hass, floor.floor_id);
-    areas.sort((a, b) =>
-      (a.name || "").localeCompare(b.name || "", undefined, {
-        sensitivity: "base",
-      }),
-    );
+    areas.sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }));
     const children = [];
     for (const area of areas) {
       const list = all.filter((e) => e.area_id === area.area_id);
@@ -207,10 +185,7 @@ function buildModel(hass, config) {
     }
     const orphanChildren = [];
     for (const [areaId, list] of byKey) {
-      const title =
-        areaId === "__none__"
-          ? noAreaLabel
-          : hass?.areas?.[areaId]?.name || areaId;
+      const title = areaId === "__none__" ? noAreaLabel : hass?.areas?.[areaId]?.name || areaId;
       const act = list.filter((e) => isActiveState(e.state, activeStates)).length;
       orphanChildren.push({
         title,
@@ -219,11 +194,7 @@ function buildModel(hass, config) {
         maxName,
       });
     }
-    orphanChildren.sort((a, b) =>
-      (a.title || "").localeCompare(b.title || "", undefined, {
-        sensitivity: "base",
-      }),
-    );
+    orphanChildren.sort((a, b) => (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" }));
     const oAct = flatOrphan.filter((e) => isActiveState(e.state, activeStates)).length;
     sections.push({
       kind: "both",
@@ -254,8 +225,6 @@ class HaDeviceSummary extends LitElement {
       active_states: ["on"],
       count_label: "offen",
       truncate_entity: 0,
-      card_columns: 1,
-      card_rows: 4,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -270,8 +239,6 @@ class HaDeviceSummary extends LitElement {
       active_states: ["on"],
       count_label: "offen",
       truncate_entity: 0,
-      card_columns: 1,
-      card_rows: 4,
       unassigned_label: "Ohne Stockwerk",
       no_area_label: "Ohne Bereich",
     };
@@ -279,8 +246,7 @@ class HaDeviceSummary extends LitElement {
     if (config.truncate_entity === undefined && config.truncate_areas != null) {
       merged.truncate_entity = config.truncate_areas;
     }
-    const span = Math.max(1, Number(merged.card_columns) || 1);
-    this.style.gridColumn = `span ${span}`;
+    this.style.removeProperty("grid-column");
     this._config = merged;
   }
 
@@ -291,7 +257,7 @@ class HaDeviceSummary extends LitElement {
       rows += 1;
       if (s.children) rows += s.children.length;
       if (m.show_devices) {
-        const ent = () => 2;
+        const ent = (sec) => Math.ceil((sec.entities?.length || 0) / 5);
         if (s.children) {
           for (const c of s.children) rows += ent(c);
         } else {
@@ -303,11 +269,9 @@ class HaDeviceSummary extends LitElement {
   }
 
   getGridOptions() {
-    const raw = Math.max(1, Number(this._config?.card_columns) || 1);
-    const columns = Math.min(12, raw * 3);
-    const rows = Math.max(2, Number(this._config?.card_rows) || this.getCardSize());
+    const rows = Math.max(2, this.getCardSize());
     return {
-      columns,
+      columns: 6,
       min_columns: 3,
       rows,
       min_rows: 2,
@@ -332,15 +296,6 @@ class HaDeviceSummary extends LitElement {
           },
         },
         { name: "show_devices", selector: { boolean: {} } },
-        {
-          type: "grid",
-          name: "",
-          flatten: true,
-          schema: [
-            { name: "card_columns", selector: { number: { min: 1, max: 4, step: 1 } } },
-            { name: "card_rows", selector: { number: { min: 2, max: 24, step: 1 } } },
-          ],
-        },
         { name: "count_label", selector: { text: {} } },
         { name: "active_states", selector: { object: {} } },
         { name: "device_classes", selector: { object: {} } },
@@ -360,8 +315,6 @@ class HaDeviceSummary extends LitElement {
           title: "Titel",
           group_by: "Gruppierung",
           show_devices: "Geräte-Badges anzeigen",
-          card_columns: "Kartenbreite (Spalten)",
-          card_rows: "Kartenhöhe (Rows)",
           count_label: "Zähl-Label",
           active_states: "Aktive Zustände (YAML-Liste, z. B. [\"on\"])",
           device_classes: "Device-Classes (YAML-Liste, z. B. [window, door])",
@@ -372,11 +325,8 @@ class HaDeviceSummary extends LitElement {
         return labels[schema.name];
       },
       assertConfig: (config) => {
-        if (config.card_columns != null && Number(config.card_columns) < 1) {
-          throw new Error("card_columns muss >= 1 sein.");
-        }
-        if (config.card_rows != null && Number(config.card_rows) < 2) {
-          throw new Error("card_rows muss >= 2 sein.");
+        if (config.truncate_entity != null && Number(config.truncate_entity) < 0) {
+          throw new Error("truncate_entity muss >= 0 sein.");
         }
       },
     };
@@ -388,8 +338,6 @@ class HaDeviceSummary extends LitElement {
       device_classes: ["window"],
       group_by: "both",
       show_devices: true,
-      card_columns: 2,
-      card_rows: 4,
     };
   }
 
@@ -405,15 +353,9 @@ class HaDeviceSummary extends LitElement {
 
   _badge(e, activeStates, maxName) {
     const active = isActiveState(e.state, activeStates);
-    const name =
-      maxName > 0 ? truncate(e.friendly, maxName) : e.friendly;
+    const name = maxName > 0 ? truncate(e.friendly, maxName) : e.friendly;
     return html`
-      <button
-        type="button"
-        class="badge ${active ? "badge--active" : ""}"
-        @click=${() => this._moreInfo(e.entity_id)}
-        title="${e.friendly} (${e.state})"
-      >
+      <button type="button" class="badge ${active ? "badge--active" : ""}" @click=${() => this._moreInfo(e.entity_id)} title="${e.friendly} (${e.state})">
         <span class="badge-dot" aria-hidden="true"></span>
         <span class="badge-label">${name}</span>
       </button>
@@ -422,9 +364,7 @@ class HaDeviceSummary extends LitElement {
 
   _badgesRow(entities, activeStates, maxName) {
     if (!entities?.length) return nothing;
-    return html`
-      <div class="badges">${entities.map((e) => this._badge(e, activeStates, maxName))}</div>
-    `;
+    return html`<div class="badges">${entities.map((e) => this._badge(e, activeStates, maxName))}</div>`;
   }
 
   _block(sec, activeStates, showDevices) {
@@ -442,65 +382,44 @@ class HaDeviceSummary extends LitElement {
 
   render() {
     if (!this.hass) {
-      return html`<ha-card><div class="pad muted">Warte auf Home Assistant…</div></ha-card>`;
+      return html`<ha-card><div class="card-content muted">Warte auf Home Assistant...</div></ha-card>`;
     }
 
     const cfg = this._config;
     const model = buildModel(this.hass, cfg);
-    const {
-      sections,
-      sumActive,
-      sumTotal,
-      openAny,
-      showDevices,
-      activeStates,
-    } = model;
+    const { sections, sumActive, sumTotal, openAny, showDevices, activeStates } = model;
 
     const summaryLine = `${sumActive}/${sumTotal} ${cfg.count_label || "offen"}`;
     const icon = openAny ? "mdi:window-open" : "mdi:window-closed";
-    const iconColor = openAny
-      ? "var(--error-color, #db4437)"
-      : "var(--success-color, #43a047)";
+    const iconColor = openAny ? "var(--error-color, #db4437)" : "var(--success-color, #43a047)";
 
     return html`
       <ha-card>
-        <div class="card-inner">
-          <div class="row">
-            <div class="icon-wrap" style="color: ${iconColor}">
-              <ha-icon icon=${icon}></ha-icon>
-            </div>
-            <div class="text">
-              <div class="primary">${cfg.title ?? "Fenster"}</div>
-              <div class="summary-line">${summaryLine}</div>
+        <div class="card-content">
+          <div class="header-row">
+            <div class="icon-wrap" style="color: ${iconColor}"><ha-icon icon=${icon}></ha-icon></div>
+            <div class="header-text">
+              <div class="title">${cfg.title ?? "Fenster"}</div>
+              <div class="subtitle">${summaryLine}</div>
             </div>
           </div>
+
+          ${sumTotal === 0 ? html`<div class="empty">Keine passenden Geräte (Filter prüfen).</div>` : nothing}
+
           <div class="sections">
-            ${sumTotal === 0
-              ? html`<div class="empty">Keine passenden Geräte (Filter prüfen).</div>`
-              : nothing}
             ${sections.map((s) => {
               if (s.kind === "both" && s.children) {
                 return html`
-                  <div class="section-floor">
-                    <div class="floor-head">
-                      <span class="floor-title">${s.title}</span>
+                  <section class="section">
+                    <div class="section-head">
+                      <span class="section-title">${s.title}</span>
                       <span class="meta-chip">${s.subtitle}</span>
                     </div>
-                    ${s.children.map((c) =>
-                      this._block(
-                        { ...c, maxName: s.maxName },
-                        activeStates,
-                        showDevices,
-                      ),
-                    )}
-                  </div>
+                    ${s.children.map((c) => this._block({ ...c, maxName: s.maxName }, activeStates, showDevices))}
+                  </section>
                 `;
               }
-              return html`
-                <div class="section-floor">
-                  ${this._block(s, activeStates, showDevices)}
-                </div>
-              `;
+              return html`<section class="section">${this._block(s, activeStates, showDevices)}</section>`;
             })}
           </div>
         </div>
@@ -511,143 +430,96 @@ class HaDeviceSummary extends LitElement {
   static styles = css`
     :host {
       display: block;
-      height: auto;
-      --ha-ds-pad: 10px;
-      --ha-ds-gap: 8px;
-      --ha-ds-chip-radius: 18px;
-      --ha-ds-badge-rows: 2;
-      --ha-ds-group-rows: 2;
-      grid-column: span 1;
       min-width: 0;
     }
 
     ha-card {
-      height: auto;
       box-sizing: border-box;
-      width: 100%;
     }
 
-    .card-inner {
+    .card-content {
+      padding: 12px;
       box-sizing: border-box;
-      padding: var(--ha-ds-pad);
-      display: flex;
-      flex-direction: column;
-      gap: var(--ha-ds-gap);
-      width: 100%;
     }
 
-    .pad {
-      padding: var(--ha-ds-pad);
-    }
-    .muted {
-      color: var(--secondary-text-color);
-    }
-    .empty {
-      font-size: 12px;
-      color: var(--secondary-text-color);
-      padding: 2px 0;
-    }
-
-    .row {
+    .header-row {
       display: flex;
-      flex-direction: row;
       align-items: center;
       gap: 10px;
-      flex-shrink: 0;
+      margin-bottom: 10px;
     }
 
     .icon-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
       width: 36px;
       height: 36px;
       border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-      color: inherit;
       flex-shrink: 0;
     }
 
     ha-icon {
-      width: 20px;
-      height: 20px;
       --mdc-icon-size: 20px;
     }
 
-    .text {
+    .header-text {
       min-width: 0;
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
     }
 
-    .primary {
+    .title {
       font-size: 15px;
       font-weight: 600;
       line-height: 1.2;
-      letter-spacing: 0.01em;
-      color: var(--primary-text-color);
     }
 
-    .summary-line {
+    .subtitle,
+    .empty,
+    .muted {
       font-size: 12px;
       color: var(--secondary-text-color);
-      line-height: 1.25;
+    }
+
+    .sections {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-head,
+    .block-head {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 8px;
+    }
+
+    .section-title,
+    .block-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
     }
 
     .meta-chip {
       display: inline-flex;
       align-items: center;
       font-size: 11px;
-      font-weight: 500;
       line-height: 1;
-      padding: 4px 9px;
-      border-radius: var(--ha-ds-chip-radius);
-      color: var(--secondary-text-color);
+      padding: 4px 8px;
+      border-radius: 999px;
       background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
       border: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent);
+      color: var(--secondary-text-color);
       white-space: nowrap;
-      flex: 0 0 auto;
-    }
-
-    .sections {
-      display: grid;
-      grid-template-rows: repeat(var(--ha-ds-group-rows, 2), auto);
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(280px, max-content);
-      gap: var(--ha-ds-gap) 12px;
-      align-items: start;
-      justify-items: stretch;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .section-floor {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 0;
-      margin: 0;
-      min-width: 280px;
-    }
-
-    .floor-head,
-    .block-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px 8px;
-    }
-
-    .floor-title,
-    .block-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary-text-color);
-      line-height: 1.2;
-      flex: 0 1 auto;
-      min-width: 0;
     }
 
     .block {
@@ -657,40 +529,30 @@ class HaDeviceSummary extends LitElement {
     }
 
     .badges {
-      display: grid;
-      grid-template-rows: repeat(var(--ha-ds-badge-rows, 2), auto);
-      grid-auto-flow: column;
-      grid-auto-columns: max-content;
+      display: flex;
+      flex-wrap: wrap;
       gap: 6px 8px;
       width: 100%;
-      max-width: 100%;
-      align-items: start;
-      justify-items: start;
-      overflow: visible;
-      padding-bottom: 0;
     }
 
     .badge {
       display: inline-flex;
       align-items: flex-start;
       gap: 6px;
-      box-sizing: border-box;
-      width: max-content;
-      min-width: 0;
-      margin: 0;
-      padding: 5px 11px 5px 9px;
       border: none;
-      border-radius: var(--ha-ds-chip-radius);
-      font-family: inherit;
+      border-radius: 999px;
+      padding: 5px 10px;
+      margin: 0;
+      font: inherit;
       font-size: 12px;
-      font-weight: 500;
       line-height: 1.3;
       text-align: left;
-      cursor: pointer;
       color: var(--primary-text-color);
       background: color-mix(in srgb, var(--primary-text-color) 7%, transparent);
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--divider-color) 70%, transparent);
-      transition: background 0.12s ease, box-shadow 0.12s ease;
+      cursor: pointer;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .badge-label {
@@ -726,7 +588,6 @@ class HaDeviceSummary extends LitElement {
       outline: 2px solid var(--primary-color);
       outline-offset: 2px;
     }
-
   `;
 }
 

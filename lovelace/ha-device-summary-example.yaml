@@ -2,34 +2,24 @@
 
 # Standard: Stockwerk → Räume, Badges, „offen“ = on
 type: custom:ha-device-summary
-card_columns: 2
-card_rows: 4
 
 # --- Nur Stockwerk (alle Geräte des Stockwerks als Badges) ---
 # type: custom:ha-device-summary
-# card_columns: 2
-# card_rows: 4
 # group_by: floor
 # show_devices: true
 
 # --- Nur Raum (flache Liste nach Bereich) ---
 # type: custom:ha-device-summary
-# card_columns: 2
-# card_rows: 4
 # group_by: area
 # show_devices: true
 
 # --- Nur Zahlen, ohne Badges ---
 # type: custom:ha-device-summary
-# card_columns: 2
-# card_rows: 3
 # group_by: both
 # show_devices: false
 
 # --- Fenster + Türen, längere Badge-Namen ---
 # type: custom:ha-device-summary
-# card_columns: 3
-# card_rows: 5
 # title: Fenster & Türen
 # device_classes:
 #   - window
