@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "2.1.0";
+const VERSION = "2.1.1";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -467,15 +467,23 @@ class HaDeviceSummary extends LitElement {
     :host {
       display: block;
       min-width: 0;
+      max-width: 100%;
     }
 
     ha-card {
       box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
     }
 
     .card-content {
       padding: 12px;
       box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .header-row {
@@ -522,12 +530,14 @@ class HaDeviceSummary extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      min-width: 0;
     }
 
     .section {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      min-width: 0;
     }
 
     .section-head,
@@ -543,6 +553,9 @@ class HaDeviceSummary extends LitElement {
       font-size: 13px;
       font-weight: 600;
       line-height: 1.2;
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
     }
 
     .meta-chip {
@@ -556,12 +569,16 @@ class HaDeviceSummary extends LitElement {
       border: 1px solid color-mix(in srgb, var(--divider-color) 55%, transparent);
       color: var(--secondary-text-color);
       white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .block {
       display: flex;
       flex-direction: column;
       gap: 5px;
+      min-width: 0;
     }
 
     .badges {
@@ -569,6 +586,7 @@ class HaDeviceSummary extends LitElement {
       flex-wrap: wrap;
       gap: 6px 8px;
       width: 100%;
+      min-width: 0;
     }
 
     .badge {

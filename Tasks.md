@@ -52,3 +52,5 @@ Geänderte `src/` → `npm run build` → `ha-device-summary.js` im Root committ
 
 1. Mushroom über HACS installieren.
 2. YAML aus `lovelace/mushroom-fenster-status-nach-stockwerk.yaml` verwenden (`custom:mushroom-template-card`).
+
+- [x] Layout-Fix: Card strikt auf HA-Zellbreite begrenzt (max-width: 100%, overflow: hidden, min-width: 0 in allen Ebenen), damit Inhalt nicht aus dem Dashboard-Layout herausragt.
