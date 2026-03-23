@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from "lit";
 
-const VERSION = "1.2.0";
+const VERSION = "1.3.0";
 
 function isHidden(hass, entityId) {
   const row = hass?.entities?.[entityId];
@@ -285,7 +285,7 @@ class HaDeviceSummary extends LitElement {
       rows += 1;
       if (s.children) rows += s.children.length;
       if (m.show_devices) {
-        const ent = (sec) => Math.ceil((sec.entities?.length || 0) / 4);
+        const ent = () => 2;
         if (s.children) {
           for (const c of s.children) rows += ent(c);
         } else {
@@ -423,28 +423,23 @@ class HaDeviceSummary extends LitElement {
   static styles = css`
     :host {
       display: block;
-      height: 100%;
+      height: auto;
       --ha-ds-pad: 10px;
       --ha-ds-gap: 8px;
-      --ha-ds-radius: 12px;
       --ha-ds-chip-radius: 18px;
-      --ha-ds-badge-max-h: min(42vh, 360px);
+      --ha-ds-badge-rows: 2;
     }
 
     ha-card {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
+      height: auto;
       box-sizing: border-box;
     }
 
     .card-inner {
       box-sizing: border-box;
       padding: var(--ha-ds-pad);
-      flex: 1 1 auto;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: var(--ha-ds-gap);
     }
 
@@ -526,49 +521,19 @@ class HaDeviceSummary extends LitElement {
     .sections {
       display: flex;
       flex-direction: column;
-      flex: 1 1 auto;
       gap: var(--ha-ds-gap);
-      min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-gutter: stable;
     }
 
     .section-floor {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 8px 10px;
-      border-radius: var(--ha-ds-radius);
-      background: color-mix(in srgb, var(--primary-text-color) 4%, var(--card-background-color));
-      border: 1px solid color-mix(in srgb, var(--divider-color) 65%, transparent);
-      box-shadow: 0 1px 2px color-mix(in srgb, var(--primary-text-color) 6%, transparent);
-      flex: 0 1 auto;
-      min-height: 0;
+      padding: 0;
+      margin: 0;
     }
 
-    .section-floor:only-child {
-      flex: 1 1 auto;
-      min-height: 0;
-    }
-
-    .section-floor:not(:only-child) .badges {
-      max-height: min(var(--ha-ds-badge-max-h), 100%);
-    }
-
-    .section-floor:only-child > .block:only-of-type {
-      flex: 1 1 auto;
-      min-height: 0;
-    }
-
-    .section-floor:only-child > .block:only-of-type .badges {
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: none;
-    }
-
-    .section-floor:only-child > .block:not(:only-of-type) .badges {
-      max-height: min(var(--ha-ds-badge-max-h), 100%);
+    .section-floor + .section-floor {
+      margin-top: 12px;
     }
 
     .floor-head,
@@ -593,26 +558,22 @@ class HaDeviceSummary extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 5px;
-      min-height: 0;
-    }
-
-    .section-floor .block {
-      padding-left: 6px;
-      border-left: 2px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
     }
 
     .badges {
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      align-items: flex-start;
-      gap: 5px 8px;
+      display: grid;
+      grid-template-rows: repeat(var(--ha-ds-badge-rows, 2), auto);
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      gap: 6px 8px;
       width: 100%;
-      min-height: 0;
+      max-width: 100%;
+      align-items: start;
+      justify-items: start;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-bottom: 1px;
+      padding-bottom: 2px;
+      scrollbar-gutter: stable;
     }
 
     .badge {
@@ -621,7 +582,7 @@ class HaDeviceSummary extends LitElement {
       gap: 6px;
       box-sizing: border-box;
       width: max-content;
-      max-width: 100%;
+      min-width: 0;
       margin: 0;
       padding: 5px 11px 5px 9px;
       border: none;

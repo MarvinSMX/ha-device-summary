@@ -80,17 +80,20 @@ active_states: ["on"]
 
 ## Styling (Mushroom-nah, kompakt)
 
-Auf der Karte kannst du per Theme / `card_mod` (falls installiert) anpassen:
+Badges liegen in einem **Raster mit maximal 2 Zeilen** und **beliebig vielen Spalten** (CSS Grid: `grid-auto-flow: column`). Es werden zuerst die erste Spalte von oben nach unten gefüllt, dann die nächste Spalte — bei vielen Geräten kann horizontal **gescrollt** werden.
+
+Per Theme / `card_mod` (falls installiert) anpassbar:
 
 | CSS-Variable (auf `ha-device-summary`) | Wirkung |
 |----------------------------------------|---------|
 | `--ha-ds-pad` | Innenabstand der Karte |
-| `--ha-ds-gap` | Abstand zwischen Blöcken |
-| `--ha-ds-radius` | Ecken der Bereichs-Kacheln |
+| `--ha-ds-gap` | Abstand zwischen Gruppen / Blöcken |
 | `--ha-ds-chip-radius` | Pillen-Radius (Badges, Zähler-Chips) |
-| `--ha-ds-badge-max-h` | max. Höhe der Badge-Spalte bei **mehreren** Stockwerks-Blöcken (Spalten-Umbruch nach rechts); Standard `min(42vh, 360px)` |
+| `--ha-ds-badge-rows` | Zeilen im Badge-Raster (Standard: **2**) |
 
-Bei **nur einem** Stockwerks-Block füllen die Badges die verfügbare Kartenhöhe (`height: 100%` am Host) und brechen bei Platzmangel in weitere Spalten um.
+Stockwerk-/Raum-Gruppen haben **keine** eigene Container-Karte — nur Überschrift, Meta-Chip und Badges.
+
+**Breite der Karte:** Karten-Spalte breiter ziehen oder über mehrere Spannen legen — dann passen mehr Badge-Spalten nebeneinander, bevor horizontal gescrollt werden muss.
 
 ## Voraussetzungen
 
