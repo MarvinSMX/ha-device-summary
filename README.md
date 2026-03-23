@@ -1,6 +1,6 @@
 # HA Device Summary
 
-Lovelace-Karte für Home Assistant: **kompakte Geräteübersicht nach Stockwerk und Bereich** (Floors & Areas), optisch an Mushroom angelehnt (Icon + Primary/Secondary).
+Lovelace-Karte für Home Assistant: Übersicht nach **Stockwerk**, **Raum** oder **beidem**, mit Zählung für einen konfigurierbaren Zustand (z. B. Fenster **offen**) und optional **Geräte als Badges** (Klick → *Mehr Infos*).
 
 ## Installation mit HACS
 
@@ -30,21 +30,44 @@ Minimal:
 type: custom:ha-device-summary
 ```
 
-Optional:
+### Gruppierung & Darstellung
+
+| Option | Werte | Bedeutung |
+|--------|--------|-----------|
+| **group_by** | `floor`, `area`, `both` | Nur Stockwerk · nur Raum (flach) · Stockwerk mit Räumen darunter (Standard: `both`) |
+| **show_devices** | boolean | `true`: Geräte als **Badges** unter jeder Gruppe; `false`: nur **Zahlen** `aktiv/gesamt` (Standard: `true`) |
+| **active_states** | Liste | Zustände, die als „mitgezählt“ gelten (Standard: `on`, z. B. offenes Fenster) |
+| **count_label** | Text | Beschriftung in der Zählung (Standard: `offen`) → z. B. `2/5 offen` |
+| **device_classes** | Liste | `binary_sensor.device_class` (Standard: `window`) |
+| **truncate_entity** | Zahl | max. Zeichen für Badge-Text (Alias: **truncate_areas**) |
+| **unassigned_label** | Text | Block für Bereiche/Geräte **ohne** Stockwerk |
+| **no_area_label** | Text | Gruppe für Entitäten **ohne** Bereich |
+
+Beispiele:
 
 ```yaml
+# Nur pro Stockwerk: eine Zeile + Badges aller Geräte auf diesem Stockwerk
 type: custom:ha-device-summary
-title: Fenster & Türen
-device_classes:
-  - window
-  - door
-truncate_areas: 12
-unassigned_label: Ohne Stockwerk
-```
+group_by: floor
+show_devices: true
 
-- **device_classes**: `binary_sensor`-`device_class`-Werte (Standard: nur `window`).
-- **truncate_areas**: max. Zeichen pro Bereichsname in der zweiten Zeile.
-- **unassigned_label**: Überschrift für Bereiche **ohne** zugewiesenes Stockwerk.
+# Nur nach Raum (alle Räume, alphabetisch)
+type: custom:ha-device-summary
+group_by: area
+show_devices: true
+
+# Kompakt ohne Badges
+type: custom:ha-device-summary
+group_by: both
+show_devices: false
+
+# Türen: geschlossen zählen (binary_sensor: „off“ = zu)
+type: custom:ha-device-summary
+title: Türen
+device_classes: [door]
+active_states: ["off"]
+count_label: geschlossen
+```
 
 ## Voraussetzungen
 
